@@ -40,6 +40,12 @@ class TaskManager:
             if task["result"]["status"] != "paused":
                 task["status"] = "completed"
                 task["progress"] = 100
+        elif task_type == "data_augment":
+            from data_augment.data_augment_task import data_augmentation_task
+            task["result"] = data_augmentation_task(params, lambda p: self.update_progress(task_id, p), stop_event)
+            if task["result"]["status"] != "paused":
+                task["status"] = "completed"
+                task["progress"] = 100
 
     def update_progress(self, task_id: str, progress: int):
         if task_id in self.tasks and self.tasks[task_id]["status"] == "running":

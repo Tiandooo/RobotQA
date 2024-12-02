@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from data_cleaning.task_manager import TaskManager
+from utils.task_manager import TaskManager
 
 app = FastAPI()
 task_manager = TaskManager()
@@ -14,8 +14,7 @@ class StartTaskRequest(BaseModel):
 def start_data_cleaning_task(request: StartTaskRequest):
     task_id = task_manager.start_task("data_cleaning", request.dict())
     print("创建完成！")
-    with open("test_main.txt", "w") as f:
-        f.write("start")
+
     return {"task_id": task_id}
 
 @app.post("/data-cleaning/stop")
