@@ -62,6 +62,8 @@
 - **Output**:
   - `task_id`: 任务ID
 
+uvicorn data_qa.main:app --reload --port 8001
+
 #### 2.2 中止数据质量评估任务
 
 - **URL**: `/data-quality/stop`
@@ -119,3 +121,6 @@
   - `status`: 任务状态（运行中/已完成/已中止）
 
 ![img_2.png](imgs/img_2.png)
+
+
+docker run -d -p 8022:8022 --name data_gov_container -v D:\Astudy\genaug\data:/app/data data_gov
