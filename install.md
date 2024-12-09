@@ -71,7 +71,7 @@ params: task_id
 
 # 数据质量评估接口样例：
 
-
+git filter-branch --force --index-filter "git rm --cached --ignore-unmatch data_qa/pretrained_weights/FAST_VQA_B_1_4.pth"  --prune-empty --tag-name-filter cat -- --all 
 POST http://127.0.0.1:8022/data-qa/start
 ```json
 
