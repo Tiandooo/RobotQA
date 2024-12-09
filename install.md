@@ -11,7 +11,7 @@ pip install -r requirements.txt
 
 # 运行fastapi接口
 ```bash
-uvicorn main:app --host= 0.0.0.0 --port 8022 --reload
+uvicorn main:app --host=0.0.0.0 --port 8022 --reload
 ```
 
 
