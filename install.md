@@ -4,8 +4,12 @@
 下载权重文件，放在data_qa/pretrained_weights文件夹中。
  [model](https://github.com/TimothyHTimothy/FAST-VQA/releases/download/v2.0.0/FAST_VQA_B_1_4.pth) 
 
+
+
 # 安装所需库
 ```bash
+apt-get update
+apt-get install -y libgl1-mesa-glx libglib2.0-0
 pip install -r requirements.txt
 ```
 
@@ -71,14 +75,13 @@ params: task_id
 
 # 数据质量评估接口样例：
 
-git filter-branch --force --index-filter "git rm --cached --ignore-unmatch data_qa/pretrained_weights/FAST_VQA_B_1_4.pth"  --prune-empty --tag-name-filter cat -- --all 
 POST http://127.0.0.1:8022/data-qa/start
 ```json
 
 {
     "input_path": "data/kitchen_40demo/raw_data",
     "output_path": "data/kitchen_40demo/qa",
-    "device": "cuda",
+    "device": "cpu",
     "qa_params": {
         "video": true
         
