@@ -67,7 +67,7 @@ def data_qa_task(params, progress_callback, stop_event: Event):
             current_step += 1
             progress = int((current_step / total_steps) * 100)
             progress_callback(progress)
-        with open(os.path.join(output_folder_path, "cores.json"), "w", encoding="utf-8") as f:
+        with open(os.path.join(output_folder_path, "scores.json"), "w", encoding="utf-8") as f:
             json.dump(scores, f, ensure_ascii=False, indent=4)
 
 

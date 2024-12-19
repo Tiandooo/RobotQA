@@ -100,7 +100,8 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
                     output_file_name = f"{os.path.splitext(img_file)[0]}_aug_{augment_index + 1}.jpg"
                     augmented_image.save(os.path.join(output_folder_path, output_file_name))
 
-                current_step += 1
+                    current_step += 1
+
                 progress = int((current_step / total_steps) * 100)
                 progress_callback(progress)
 

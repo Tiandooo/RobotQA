@@ -93,6 +93,7 @@ def run_data_cleaning(params, progress_callback, stop_event: Event):
         "deleted_values": deleted_values,
         "filled_values": filled_values,
         "output_path": os.path.join(output_path, "cleaning_res"),
+        "status": "success"
     }
 
 

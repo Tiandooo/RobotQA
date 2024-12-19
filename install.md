@@ -10,7 +10,7 @@
 ```bash
 apt-get update
 apt-get install -y libgl1-mesa-glx libglib2.0-0
-pip install -r requirements.txt
+pip install -r requirements_backup.txt
 ```
 
 # 运行fastapi接口
@@ -98,3 +98,32 @@ params: task_id
 POST http://127.0.0.1:8022/data-qa/stop
 
 params: task_id
+
+
+
+
+nvidia-docker
+
+docker run -p 34809:34809 --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -it -v /home/server/RobotQA/data:/root/Documents/data:rw --rm pytorch/pytorch:1.12.1-cuda11.3-cudnn8-runtime /bin/bash
+
+
+docker run -p 34809:34809 --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -it robot_gov /bin/bash
+
+sudo docker run -d -p 34809:34809 --gpus all -it -v /home/server/fdu/data:/app/data my_robot_dataset_gov
+
+
+
+临时退出docker container
+ctrl+p ctrl+q
+
+进入docker container
+sudo docker exec -it efce35a56f90 bash
+
+
+sudo docker commit {id} {image_name} 
+
+docker 
+
+![img_1.png](img_1.png)
+
+![img_2.png](img_2.png)
