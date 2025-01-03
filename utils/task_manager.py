@@ -1,3 +1,4 @@
+import os
 import threading
 from typing import Dict, Any
 import uuid
@@ -8,7 +9,12 @@ class TaskManager:
     def __init__(self):
         self.tasks = {}  # 存储任务信息，key为task_id
 
-    def start_task(self, task_type: str, params: Dict[str, Any]) -> str:
+    def start_task(self, task_type: str, params: Dict[str, Any]) -> Dict:
+
+        if not os.path.exists(params.get("input_path")):
+            return {
+                "msg": "Input path does not exist"
+            }
         task_id = str(uuid.uuid4())
         task = {
             "type": task_type,
@@ -26,7 +32,10 @@ class TaskManager:
         task["stop_event"] = stop_event
         self.tasks[task_id] = task
         thread.start()
-        return task_id
+        return {
+            "msg": "Task started",
+            "task_id": task_id,
+        }
 
     def _run_task(self, task_id: str, stop_event: threading.Event):
         task = self.tasks[task_id]

@@ -28,16 +28,19 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
 
         # 找到所有序列
     sequences = [d for d in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, d))]
-    sequence_len = len(sequences)
-    sequence_path = os.path.join(input_path, sequences[0])
-    folders = [f for f in os.listdir(sequence_path) if os.path.isdir(os.path.join(sequence_path, f))]
-    folder_len = len(folders)
+    # sequence_len = len(sequences)
+    # sequence_path = os.path.join(input_path, sequences[0])
+    # folders = [f for f in os.listdir(sequence_path) if os.path.isdir(os.path.join(sequence_path, f))]
+    # folder_len = len(folders)
+    #
+    # folder_path = os.path.join(sequence_path, folders[0])
+    # images = [img for img in os.listdir(folder_path) if img.endswith(('.png', '.jpg', '.jpeg'))]
+    # image_len = len(images)
+    #
+    # total_steps = sequence_len * folder_len * image_len * augmentation_count
 
-    folder_path = os.path.join(sequence_path, folders[0])
-    images = [img for img in os.listdir(folder_path) if img.endswith(('.png', '.jpg', '.jpeg'))]
-    image_len = len(images)
+    total_steps = count_images_in_directory(input_path) * augmentation_count
 
-    total_steps = sequence_len * folder_len * image_len * augmentation_count
 
     current_step = 0
 
@@ -102,6 +105,7 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
 
                     current_step += 1
 
+
                 progress = int((current_step / total_steps) * 100)
                 progress_callback(progress)
 
@@ -109,6 +113,26 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
         "status": "success",
         "message": "Task finished.",
     }
+
+
+def count_images_in_directory(directory, image_extensions=(".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")):
+    """
+    统计指定目录下所有图片的数量（包括子目录）。
+
+    :param directory: 目标目录路径
+    :param image_extensions: 图片文件扩展名列表
+    :return: 图片数量
+    """
+    image_count = 0
+
+    # 遍历目录树
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            # 检查文件扩展名是否为图片
+            if file.lower().endswith(image_extensions):
+                image_count += 1
+
+    return image_count
 
 
 if __name__ == "__main__":

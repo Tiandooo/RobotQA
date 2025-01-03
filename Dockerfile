@@ -28,10 +28,10 @@ RUN echo "[global]\nindex-url = https://mirrors.tuna.tsinghua.edu.cn/pypi/web/si
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# 开放端口 8022
+# 开放端口 34809
 EXPOSE 34809
 
 # 运行 FastAPI 应用
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8022", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "34809", "--reload"]
 
