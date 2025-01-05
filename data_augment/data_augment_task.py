@@ -1,15 +1,10 @@
 import os
 import random
-import time
-
-import cv2
-import numpy as np
-import pandas as pd
-from threading import Event
 from PIL import Image, ImageEnhance
+import numpy as np
+import cv2
+from threading import Event
 
-
-# 数据增强任务逻辑
 def data_augmentation_task(params, progress_callback, stop_event: Event):
     """模拟数据增强任务"""
 
@@ -21,43 +16,27 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    # 遍历所有子目录和文件
-
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input path {input_path} does not exist")
 
-        # 找到所有序列
+    # 找到所有序列
     sequences = [d for d in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, d))]
-    # sequence_len = len(sequences)
-    # sequence_path = os.path.join(input_path, sequences[0])
-    # folders = [f for f in os.listdir(sequence_path) if os.path.isdir(os.path.join(sequence_path, f))]
-    # folder_len = len(folders)
-    #
-    # folder_path = os.path.join(sequence_path, folders[0])
-    # images = [img for img in os.listdir(folder_path) if img.endswith(('.png', '.jpg', '.jpeg'))]
-    # image_len = len(images)
-    #
-    # total_steps = sequence_len * folder_len * image_len * augmentation_count
-
     total_steps = count_images_in_directory(input_path) * augmentation_count
-
-
     current_step = 0
 
     for sequence in sequences:
         sequence_path = os.path.join(input_path, sequence)
         folders = [f for f in os.listdir(sequence_path) if os.path.isdir(os.path.join(sequence_path, f))]
 
-        # 随机生成增强参数（一个序列内保持一致）
+        # 生成增强参数
         seq_params = {
-            "brightness": [random.uniform(0.8, 1.5) for _ in range(augmentation_count)] if "brightness" in augmentation_params else None,
-            "contrast": [random.uniform(0.7, 1.5) for _ in range(augmentation_count)] if "contrast" in augmentation_params else None,
-            "saturation": [random.uniform(0.7, 1.5) for _ in range(augmentation_count)] if "saturation" in augmentation_params else None,
-            "hue": [random.uniform(-5, 5) for _ in range(augmentation_count)] if "hue" in augmentation_params else None,
+            "brightness": generate_augmentation_values(augmentation_params.get("brightness"), augmentation_count),
+            "contrast": generate_augmentation_values(augmentation_params.get("contrast"), augmentation_count),
+            "saturation": generate_augmentation_values(augmentation_params.get("saturation"), augmentation_count),
+            "hue": generate_augmentation_values(augmentation_params.get("hue"), augmentation_count),
         }
 
         for folder in folders:
-
             folder_path = os.path.join(sequence_path, folder)
             output_folder_path = os.path.join(output_path, sequence, folder)
             os.makedirs(output_folder_path, exist_ok=True)
@@ -65,14 +44,13 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
             images = [img for img in os.listdir(folder_path) if img.endswith(('.png', '.jpg', '.jpeg'))]
 
             for img_file in images:
-
                 if stop_event.is_set():
                     print(f"Task stopped by user. Stopping at file {current_step}/{total_steps}.")
-
                     return {
                         "status": "paused",
                         "message": "Task stopped.",
                     }
+
                 img_path = os.path.join(folder_path, img_file)
                 original_image = Image.open(img_path)
 
@@ -90,9 +68,6 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
                         enhancer = ImageEnhance.Color(augmented_image)
                         augmented_image = enhancer.enhance(seq_params["saturation"][augment_index])
                     if seq_params["hue"] is not None:
-                        # Hue adjustment (Pillow does not natively support this; use workaround if needed)
-                        # This is a placeholder for actual hue manipulation
-
                         augmented_image = np.array(augmented_image)
                         augmented_image = cv2.cvtColor(augmented_image, cv2.COLOR_RGB2HSV)
                         augmented_image[:, :, 0] = np.clip(augmented_image[:, :, 0] + seq_params["hue"][augment_index], 0, 255)
@@ -105,7 +80,6 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
 
                     current_step += 1
 
-
                 progress = int((current_step / total_steps) * 100)
                 progress_callback(progress)
 
@@ -113,6 +87,27 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
         "status": "success",
         "message": "Task finished.",
     }
+
+def generate_augmentation_values(param_range, count):
+    """根据给定的范围生成增强参数值"""
+    if param_range is None:
+        return None
+    if isinstance(param_range, (int, float)):
+        # 在单个值附近小幅度波动（例如 ±10%）
+        fluctuation = 0.1  # 波动范围
+        return [random.uniform(param_range * (1 - fluctuation), param_range * (1 + fluctuation)) for _ in range(count)]
+    if isinstance(param_range, (list, tuple)) and len(param_range) == 2:
+        return [random.uniform(param_range[0], param_range[1]) for _ in range(count)]
+    raise ValueError("Invalid parameter range format. Expected None, a single value, or a list/tuple of two values.")
+
+def count_images_in_directory(directory):
+    """计算目录中的图片数量"""
+    count = 0
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith(('.png', '.jpg', '.jpeg')):
+                count += 1
+    return count
 
 
 def count_images_in_directory(directory, image_extensions=(".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")):

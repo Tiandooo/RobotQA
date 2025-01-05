@@ -1,3 +1,5 @@
+from typing import Optional, Union, Tuple
+
 from fastapi import FastAPI, HTTPException
 from utils.task_manager import TaskManager
 from data_augment.data_augment_task import data_augmentation_task
@@ -5,23 +7,93 @@ from data_augment.data_augment_task import data_augmentation_task
 app = FastAPI()
 task_manager = TaskManager()
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # 定义数据增强参数模型
 class AugmentationParams(BaseModel):
-    brightness: float  # 亮度参数
-    contrast: float  # 对比度参数
-    saturation: float  # 饱和度参数
-    hue: float  # 色调参数
+    """
+    数据增强参数配置类。
+    支持多种图像增强操作，包括亮度、对比度、饱和度、色调等。
+    每个参数可以是单个值（在值附近波动）或范围（在范围内随机生成）。
+    """
+    brightness: Optional[Union[float, Tuple[float, float]]] = Field(
+        default=None,
+        description="亮度调整参数。可以是单个值（如 1.2）或范围（如 [0.8, 1.5]）。"
+                    "如果为单个值，则在该值附近小幅度波动（默认波动范围为 ±10%）。",
+        example=1.2
+    )
+    contrast: Optional[Union[float, Tuple[float, float]]] = Field(
+        default=None,
+        description="对比度调整参数。可以是单个值（如 1.2）或范围（如 [0.8, 1.5]）。"
+                    "如果为单个值，则在该值附近小幅度波动（默认波动范围为 ±10%）。",
+        example=[0.8, 1.5]
+    )
+    saturation: Optional[Union[float, Tuple[float, float]]] = Field(
+        default=None,
+        description="饱和度调整参数。可以是单个值（如 1.2）或范围（如 [0.8, 1.5]）。"
+                    "如果为单个值，则在该值附近小幅度波动（默认波动范围为 ±10%）。",
+        example=None
+    )
+    hue: Optional[Union[float, Tuple[float, float]]] = Field(
+        default=None,
+        description="色调调整参数。可以是单个值（如 4）或范围（如 [-5, 5]）。"
+                    "如果为单个值，则在该值附近小幅度波动（默认波动范围为 ±10%）。",
+        example=4
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "brightness": 1.2,
+                "contrast": [0.8, 1.5],
+                "saturation": None,
+                "hue": 4
+            }
+        }
+    }
 
 
 # 定义启动任务请求体的 Pydantic 模型
 class StartAugmentationRequest(BaseModel):
-    input_path: str
-    output_path: str
-    augmentation_count: int
-    augmentation_params: AugmentationParams
+    """
+    启动数据增强任务的请求体模型。
+    """
+    input_path: str = Field(
+        ...,
+        description="输入图像的根目录路径。",
+        example="/path/to/input"
+    )
+    output_path: str = Field(
+        ...,
+        description="输出图像的根目录路径。",
+        example="/path/to/output"
+    )
+    augmentation_count: int = Field(
+        ...,
+        description="每张图像的增强数量。",
+        example=5
+    )
+    augmentation_params: AugmentationParams = Field(
+        ...,
+        description="数据增强参数配置。"
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "input_path": "/path/to/input",
+                "output_path": "/path/to/output",
+                "augmentation_count": 5,
+                "augmentation_params": {
+                    "brightness": 1.2,
+                    "contrast": [0.8, 1.5],
+                    "saturation": None,
+                    "hue": 4
+                }
+            }
+        }
+    }
 
 
 @app.post("/data-augmentation/start")
@@ -103,7 +175,10 @@ def get_data_cleaning_progress(task_id: str):
 
 # 定义数据质量评估参数模型
 class QAParams(BaseModel):
-    video: bool
+    completeness_score: bool = False  # 完整性得分
+    accuracy_score: bool = True  # 准确性得分
+    consistency_score: bool = False # 一致性得分
+    accessable_score: bool = False # 可达性得分
 
 
 # 定义启动任务请求体的 Pydantic 模型
