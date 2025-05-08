@@ -12,6 +12,16 @@ from PIL import Image, ImageEnhance
 from data_qa.vqa import get_video_quality
 
 
+def count_videos_in_directory(directory):
+    """计算目录中的视频数量"""
+    count = 0
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith(('.mp4', 'mkv')):
+                count += 1
+    return count
+
+
 def data_qa_task(params, progress_callback, stop_event: Event):
     """
     数据质量评估任务。
@@ -35,7 +45,7 @@ def data_qa_task(params, progress_callback, stop_event: Event):
     video_len = len(videos)
     print(sequence_len, video_len)
 
-    total_steps = sequence_len * video_len
+    total_steps = count_videos_in_directory(input_path)
     current_step = 0
 
     for sequence in sequences:

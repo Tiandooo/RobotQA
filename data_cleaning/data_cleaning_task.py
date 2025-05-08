@@ -69,6 +69,8 @@ def run_data_cleaning(params, progress_callback, stop_event: Event):
 
             filled_values.extend(filled_df.to_dict(orient="records"))  # 保存填充内容
 
+
+
         # 处理重复值
         if cleaning_params.get("remove_duplicates"):
             df = df.drop_duplicates()

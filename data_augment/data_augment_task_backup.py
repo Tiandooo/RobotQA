@@ -3,13 +3,8 @@ import random
 from PIL import Image, ImageEnhance
 import numpy as np
 import cv2
-from threading import Event
-
-import os
+import time
 import shutil
-from PIL import Image, ImageEnhance
-import numpy as np
-import cv2
 from threading import Event
 
 def data_augmentation_task(params, progress_callback, stop_event: Event):
@@ -28,9 +23,9 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
 
     #--lzh, disable debug mode when publishes.
     debug_file = os.path.join(output_path, "debug.txt")
-    # debug_mode = True
-    debug_mode = False
-
+    debug_mode = True
+    #debug_mode = False
+    
     # 找到所有序列
     sequences = [d for d in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, d))]
     total_steps = count_images_in_directory(input_path) * augmentation_count
@@ -58,7 +53,7 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
 
         for folder in folders:
             folder_path = os.path.join(sequence_path, folder)
-            output_folder_path = os.path.join(output_path, sequence, folder)
+            output_folder_path = os.path.join(output_path, sequence, folder)    
             # --lzh, debug
             if debug_mode:
                 with open(debug_file, "a") as debugfile:
@@ -78,71 +73,61 @@ def data_augmentation_task(params, progress_callback, stop_event: Event):
                     }
 
                 img_path = os.path.join(folder_path, img_file)
-                output_file_path = os.path.join(output_folder_path, img_file)
+                # --lzh, debug
+                if debug_mode:
+                    with open(debug_file, "a") as debugfile:
+                        debugfile.write(f"  processing {img_path}: ")
+                original_image = Image.open(img_path)
 
-                try:
+                for augment_index in range(augmentation_count):
                     # --lzh, debug
                     if debug_mode:
                         with open(debug_file, "a") as debugfile:
-                            debugfile.write(f"  processing {img_path}: ")
-                    original_image = Image.open(img_path)
+                            debugfile.write(f" >> R{augment_index}-")
+                    augmented_image = original_image.copy()
 
-                    for augment_index in range(augmentation_count):
+                    # 应用增强
+                    if seq_params["brightness"] is not None:
+                        enhancer = ImageEnhance.Brightness(augmented_image)
+                        augmented_image = enhancer.enhance(seq_params["brightness"][augment_index])
                         # --lzh, debug
                         if debug_mode:
                             with open(debug_file, "a") as debugfile:
-                                debugfile.write(f" >> R{augment_index}-")
-                        augmented_image = original_image.copy()
-
-                        # 应用增强
-                        if seq_params["brightness"] is not None:
-                            enhancer = ImageEnhance.Brightness(augmented_image)
-                            augmented_image = enhancer.enhance(seq_params["brightness"][augment_index])
-                            # --lzh, debug
-                            if debug_mode:
-                                with open(debug_file, "a") as debugfile:
-                                    debugfile.write(f"b")
-                        if seq_params["contrast"] is not None:
-                            enhancer = ImageEnhance.Contrast(augmented_image)
-                            augmented_image = enhancer.enhance(seq_params["contrast"][augment_index])
-                            # --lzh, debug
-                            if debug_mode:
-                                with open(debug_file, "a") as debugfile:
-                                    debugfile.write(f"c")
-                        if seq_params["saturation"] is not None:
-                            enhancer = ImageEnhance.Color(augmented_image)
-                            augmented_image = enhancer.enhance(seq_params["saturation"][augment_index])
-                            # --lzh, debug
-                            if debug_mode:
-                                with open(debug_file, "a") as debugfile:
-                                    debugfile.write(f"s")
-                        if seq_params["hue"] is not None:
-                            augmented_image = np.array(augmented_image)
-                            augmented_image = cv2.cvtColor(augmented_image, cv2.COLOR_RGB2HSV)
-                            augmented_image[:, :, 0] = np.clip(augmented_image[:, :, 0] + seq_params["hue"][augment_index], 0, 255)
-                            augmented_image = cv2.cvtColor(augmented_image, cv2.COLOR_HSV2RGB)
-                            augmented_image = Image.fromarray(augmented_image)
-                            # --lzh, debug
-                            if debug_mode:
-                                with open(debug_file, "a") as debugfile:
-                                    debugfile.write(f"h")
-                        # 保存增强后的图片
-                        output_file_name = f"{os.path.splitext(img_file)[0]}_aug_{augment_index + 1}.jpg"
-                        augmented_image.save(os.path.join(output_folder_path, output_file_name))
-                        # current_step += 1  # 计数也要+1
+                                debugfile.write(f"b")
+                    if seq_params["contrast"] is not None:
+                        enhancer = ImageEnhance.Contrast(augmented_image)
+                        augmented_image = enhancer.enhance(seq_params["contrast"][augment_index])
                         # --lzh, debug
                         if debug_mode:
                             with open(debug_file, "a") as debugfile:
-                                debugfile.write(f"-ok.")
+                                debugfile.write(f"c")
+                    if seq_params["saturation"] is not None:
+                        enhancer = ImageEnhance.Color(augmented_image)
+                        augmented_image = enhancer.enhance(seq_params["saturation"][augment_index])
+                        # --lzh, debug
+                        if debug_mode:
+                            with open(debug_file, "a") as debugfile:
+                                debugfile.write(f"s")
+                    if seq_params["hue"] is not None:
+                        augmented_image = np.array(augmented_image)
+                        augmented_image = cv2.cvtColor(augmented_image, cv2.COLOR_RGB2HSV)
+                        augmented_image[:, :, 0] = np.clip(augmented_image[:, :, 0] + seq_params["hue"][augment_index], 0, 255)
+                        augmented_image = cv2.cvtColor(augmented_image, cv2.COLOR_HSV2RGB)
+                        augmented_image = Image.fromarray(augmented_image)
+                        # --lzh, debug
+                        if debug_mode:
+                            with open(debug_file, "a") as debugfile:
+                                debugfile.write(f"h")
 
-                except Exception as e:
-                    print(f"Error processing image {img_file}: {e}")
-                    # 如果处理出错，将原始图像复制到目标文件夹
-                    shutil.copy(img_path, output_file_path)
-                    # current_step += 1  # 计数也要+1
+                    # 保存增强后的图片
+                    output_file_name = f"{os.path.splitext(img_file)[0]}_aug_{augment_index + 1}.jpg"
+                    augmented_image.save(os.path.join(output_folder_path, output_file_name))
 
-                current_step += augmentation_count
-
+                    current_step += 1
+                    # --lzh, debug
+                    if debug_mode:
+                        with open(debug_file, "a") as debugfile:
+                            debugfile.write(f"-ok.")
                 progress = int((current_step / total_steps) * 100)
                 progress_callback(progress)
                 # --lzh, debug

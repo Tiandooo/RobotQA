@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Union, Tuple
 
 from fastapi import FastAPI, HTTPException
@@ -218,3 +219,22 @@ def stop_qa_task(task_id: str):
     if not success:
         raise HTTPException(status_code=400, detail="Task not found or already completed.")
     return {"status": "success"}
+
+
+@app.get('/check_accessibility')
+def check_accessibility(path: str, allow_empty: bool = False):
+    if not path or not os.path.exists(path):
+        return {"accessible": False, "error": "Invalid or non-existent path"}, 400
+
+    if not os.path.isdir(path):
+        return {"accessible": False, "error": "Path is not a directory"}, 400
+
+    for root, _, files in os.walk(path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            if not os.access(file_path, os.R_OK):
+                return {"accessible": False}
+            if not allow_empty and os.path.getsize(file_path) == 0:
+                return {"accessible": False}
+
+    return {"accessible": True}
