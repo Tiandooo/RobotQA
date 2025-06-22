@@ -1,0 +1,22 @@
+{
+  "image": {
+    "pattern": "^\\d{6}\\.jpg$",
+    "description": "图像文件名应为6位数字+.jpg后缀，例如：000123.jpg"
+  },
+  "depth": {
+    "pattern": "^\\d{6}\\.png$",
+    "description": "深度图文件名应为6位数字+.png后缀，例如：000123.png"
+  },
+  "video": {
+    "pattern": "^[a-zA-Z0-9_]+\\.mp4$",
+    "description": "视频文件名应为字母数字下划线+.mp4后缀，例如：camera1.mp4"
+  },
+  "kinematic": {
+    "pattern": "^state_[a-zA-Z0-9_]+\\.csv$",
+    "description": "运动学数据文件名应为state_+字母数字下划线+.csv后缀，例如：state_joint.csv"
+  },
+  "dynamic": {
+    "pattern": "^action_[a-zA-Z0-9_]+\\.csv$",
+    "description": "动力学数据文件名应为action_+字母数字下划线+.csv后缀，例如：action_joint.csv"
+  }
+}
