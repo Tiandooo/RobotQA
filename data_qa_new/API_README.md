@@ -117,11 +117,11 @@ uvicorn api:app --host 0.0.0.0 --port 8000
 
 1. 启动评估任务
 
-\`\`\`bash
+```bash
 curl -X POST "http://localhost:8000/tasks" \
      -H "Content-Type: application/json" \
-     -d '{"dataset_root": "/datasets/my_dataset"}'
-\`\`\`
+     -d '{"dataset_root": "/home/server/fdu/RobotQA/data/agibot_world/agibot_world_raw/356"}'
+```
 
 2. 查询任务状态
 
